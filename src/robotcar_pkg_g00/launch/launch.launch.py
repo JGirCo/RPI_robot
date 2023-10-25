@@ -40,7 +40,7 @@ def generate_launch_description():
     return LaunchDescription([
         rplidar_node,
         pwm,
-        #stop,
-        #pid_wf,
+        stop,
+        pid_wf,
         laser
     ])

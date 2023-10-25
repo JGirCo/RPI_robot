@@ -1,0 +1,3 @@
+[submodule "src/robotcar_pkg_g00/robotcar_pkg_g00/rplidar_ros2"]
+	path = src/robotcar_pkg_g00/robotcar_pkg_g00/rplidar_ros2
+	url = https://github.com/babakhani/rplidar_ros2.git
