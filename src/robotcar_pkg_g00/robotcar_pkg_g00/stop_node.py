@@ -8,7 +8,7 @@ class stop_node(Node):
     def __init__(self):
         super().__init__("stop_node") 
         self.ranges = [0.0]
-        self.distancia_segura = 0.5
+        self.distancia_segura = 1.0
         self.velocidad_angular = 0.5
         self.lado = 0.0
 
@@ -32,8 +32,8 @@ class stop_node(Node):
 
     def parar(self):
         vel = Twist()
-        n_60 = round(11*len(self.ranges)/12) - 1 # 330, nuevo 60
-        n_120 = round(1*len(self.ranges)/12) - 1 # 30, nuevo 120
+        n_80 = round(35*len(self.ranges)/36) - 1 # 350, nuevo 80
+        n_100 = round(1*len(self.ranges)/36) - 1 # 10, nuevo 100
 
         #self.get_logger().info('ranges.n_60: '+ str(self.ranges[n_60]) +' ranges.n_120: '+str(self.ranges[n_120])+'\n')
         #self.get_logger().info('n_60: '+ str(n_60) +' n_120: '+str(n_120)+'\n')
@@ -42,16 +42,16 @@ class stop_node(Node):
         vel.linear.x = 0.0
         vel.angular.z = 0.0
 
-        rangos = list(range(n_60, len(self.ranges)-1)) + list(range(1, n_120))
+        rangos = list(range(n_80, len(self.ranges)-1)) + list(range(1, n_100))
         #self.get_logger().info('rangos: ' + str(rangos) + '\n')
         
         for i in rangos:
             if(not math.isnan(self.ranges[i]) and not math.isinf(self.ranges[i])):
-                if(self.ranges[i] <= self.distancia_segura and (self.ranges.index(self.ranges[i]) > n_60 or self.ranges.index(self.ranges[i]) < n_120)):
+                if(self.ranges[i] <= self.distancia_segura and (self.ranges.index(self.ranges[i]) > n_80 or self.ranges.index(self.ranges[i]) < n_100)):
                     if (self.lado == 0.0):
-                        vel.angular.z = self.velocidad_angular
-                    else:
                         vel.angular.z = -self.velocidad_angular
+                    else:
+                        vel.angular.z = self.velocidad_angular
                     vel.linear.x = -1.0
                     #self.get_logger().info('minima distancia:'+ str(min(self.ranges))+'indice: '+str(self.ranges.index(min(self.ranges)))+'\n')
                     #self.get_logger().info('Pa lado:'+ str(vel.angular.z)+'\n\n\n')

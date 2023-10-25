@@ -10,8 +10,8 @@ class pidWF_node(Node):
         self.error_actual = 0.0
         self.velocidad_adelante = 1.0
         self.lado = 0.0
-        self.kp = 2.0
-        self.kd = 2.0
+        self.kp = 1.5
+        self.kd = 3.0
         self.der = 0.0
         self.velocidad_angular = 0.5
 
@@ -45,8 +45,11 @@ class pidWF_node(Node):
                     vel.angular.z = 0.5
 
         else:
-            vel.linear.x = 0.0
-            vel.angular.z = 0.0
+            vel.linear.x = 0.9
+            if(self.lado == 0.0):
+                vel.angular.z = -0.1
+            else:
+                vel.angular.z = 0.1
         #self.get_logger().info('Recibo el error:'+ str(self.error_mio)+'\n\n\n')
         #self.get_logger().info('Vel lineal:'+ str(vel.linear.x)+'\n\n')
         #self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')

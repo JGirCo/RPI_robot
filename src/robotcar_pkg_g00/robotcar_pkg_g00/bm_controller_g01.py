@@ -65,12 +65,12 @@ class BMControllerG01(Node):
     self.kit.continuous_servo[0].set_pulse_width_range(1300, 1700)
     # limiting the speed up to 80%
     if self.pwd_u<0.0:
-      k = 0.3
+      k = 0.35
       #self.get_logger().info('Estoy esperando')
       if self.aux == 0:
         self.kit.continuous_servo[0].throttle = 0.0
         #self.get_logger().info('Quieto: ' + str(0.0))
-        time.sleep(0.7)
+        time.sleep(1.0)
       self.kit.continuous_servo[0].throttle = (self.pwd_u)*k
       #self.get_logger().info('Hacia atras: ' + str((self.pwd_u)*k))
       self.aux = 1
