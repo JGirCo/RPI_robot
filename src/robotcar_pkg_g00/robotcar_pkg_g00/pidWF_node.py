@@ -31,26 +31,35 @@ class pidWF_node(Node):
         self.cd = data.angular.x
         self.cd2 = data.angular.y
     
-    def velocidad(self): #el eje de giro z sale del piso
-        vel = Twist()
-        vel.linear.x = self.velocidad_adelante
-        if(not math.isnan(self.error_actual) and not math.isinf(self.error_actual)):
-            if(self.lado == 0.0):
-                vel.angular.z = -(self.kp*self.error_actual + self.kd*self.der/self.timer_period)
-                if vel.angular.z < -0.5:
-                    vel.angular.z = -0.5
-            else:
-                vel.angular.z = self.kp*self.error_actual + self.kd*self.der/self.timer_period
-                if vel.angular.z > 0.5:
-                    vel.angular.z = 0.5
+    def stop(self):
+        self.vel = Twist()
+        self.vel.linear.x = 0.0
+        self.vel.angular.z = 0.0
+        self.cmd_pub.publish(self.vel)
 
-        else:
-            vel.linear.x = 0.0
-            vel.angular.z = 0.0
+    def setVel(self):
+        self.vel.angular.z = self.kp*self.error_actual + self.kd*self.der/self.timer_period
+        if(self.lado == 0.0):
+            self.vel.angular.z = -self.vel.angular.z
+    def cutoffVel(self):
+        maxAngle = 0.5
+        self.vel.angular.z = min(max(self.vel.angular.z, -maxAngle),maxAngle)
+
+        
+    def velocidad(self): #el eje de giro z sale del piso
+        self.vel = Twist()
+        self.vel.linear.x = self.velocidad_adelante
+        if(math.isnan(self.error_actual) or math.isinf(self.error_actual)):
+            self.stop()
+            return
+        self.setVel()
+        self.cutoffVel()
+
+
         #self.get_logger().info('Recibo el error:'+ str(self.error_mio)+'\n\n\n')
-        #self.get_logger().info('Vel lineal:'+ str(vel.linear.x)+'\n\n')
-        #self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')
-        self.cmd_pub.publish(vel)
+        #self.get_logger().info('Vel lineal:'+ str(self.vel.linear.x)+'\n\n')
+        #self.get_logger().info('Vel angular:'+ str(self.vel.angular.z)+'\n\n\n')
+        self.cmd_pub.publish(self.vel)
 
 def main(args=None):
     rclpy.init(args=args)
