@@ -48,9 +48,7 @@ class BMControllerG01(Node):
     self.pid_u = msg.linear.x # (-1,1)
     self.pid_r = msg.angular.z # (-0.5,0.5)
   
-  def send_cmd(self):
-    # range(1300, 1700) equiv (5%, 10%) ESC Speed
-    # It can be different for each Car
+  def mux(self):
     if self.j_u != 0.0 or self.j_r != 0.0:
       self.pwd_u = self.j_u
       self.pwd_r = self.j_r
@@ -61,22 +59,20 @@ class BMControllerG01(Node):
       self.pwd_u = self.pid_u
       self.pwd_r = self.pid_r
 
-    k = 0.0
+  def controlDireccion(self):
     self.kit.continuous_servo[0].set_pulse_width_range(1300, 1700)
     # limiting the speed up to 80%
     if self.pwd_u<0.0:
-      k = 0.3
       #self.get_logger().info('Estoy esperando')
       if self.aux == 0:
         self.kit.continuous_servo[0].throttle = 0.0
         #self.get_logger().info('Quieto: ' + str(0.0))
         time.sleep(0.7)
-      self.kit.continuous_servo[0].throttle = (self.pwd_u)*k
+      self.kit.continuous_servo[0].throttle = (self.pwd_u)*self.kAtras
       #self.get_logger().info('Hacia atras: ' + str((self.pwd_u)*k))
       self.aux = 1
     elif self.pwd_u>0.0:
-      k = 0.7
-      self.kit.continuous_servo[0].throttle = (self.pwd_u)*k
+      self.kit.continuous_servo[0].throttle = (self.pwd_u)*self.kAdelante
       #self.get_logger().info('Hacia adelante: ' + str((self.pwd_u)*k))
       self.aux = 0
 
@@ -84,6 +80,7 @@ class BMControllerG01(Node):
       self.kit.continuous_servo[0].throttle = 0.0      
         # range(1200, 2000) equiv (5%, 10%) Servo Steering
         # It can be different for each Car
+  def controlMotor(self):
     self.kit.continuous_servo[1].set_pulse_width_range(1300, 2100)
     if (not math.isnan(self.pwd_r) and not math.isinf(self.pwd_r)):
       if (self.pwd_r < -1.0):
@@ -95,6 +92,14 @@ class BMControllerG01(Node):
     else:
       self.kit.continuous_servo[1].throttle = 0.0
 
+  def send_cmd(self):
+    # range(1300, 1700) equiv (5%, 10%) ESC Speed
+    # It can be different for each Car
+    self.mux()
+    self.kAtras=0.3
+    self.kAdelante=0.7
+    self.controlDireccion()
+    self.controlMotor()
     self.get_logger().info('PWM: linear: {:.3f}, angular: {:.3f}'.format(self.pwd_u, self.pwd_r))
 
 def main(args=None):
@@ -105,7 +110,6 @@ def main(args=None):
     # ejecucion ciclica 
     rclpy.spin(node)
   except KeyboardInterrupt:
-
     node.destroy_node()
     # finalizacion
     rclpy.shutdown()
