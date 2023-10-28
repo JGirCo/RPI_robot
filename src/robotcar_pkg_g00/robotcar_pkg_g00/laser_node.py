@@ -18,25 +18,7 @@ def checkForInf(data):
 class laser_node(Node): 
     def __init__(self):
         super().__init__("laser_node") 
-
-        # Todo lo que tenga 2 es de la izquierda los otros de la derecha
-
-        self.ac = 0.1 # Es la distancia que supongo que se mueve el carro (para adelante) 
-                    # antes de calcular su distancia hacia la pared
-        self.l = 0.1 # Distancia que supongo que se mueve el carro para el calculo del 
-                    # angulo para mantenerlo paralelo al muro, en realidad no es un valor
-                    # importante ya que al final lo que buscamos es que theta sea 0 
-        self.cd = 0.0
-        self.cd_2 = 0.0 
-        self.theta = 0.0 # Queremos que sea 0, pues al estar en ese valor se asegura que el carro este paralelo al muro
-        self.y = 0.0 # Queremos que sea 0, ya que es el error de la distancia al muro
-        self.anterior = 0.0
-        self.distancia_muro = 0.3 # La distancia que buscamos mantener hasta el muro
-        self.inicio = 1
-        self.lado = 0.0
-
-        # subscriptor obj
-        # obj (msg_type,topic_name, callback_handler, buffer) 
+        self.min_dist = 2
         self.laser_sub = self.create_subscription(LaserScan, '/scan', self.scaner, 1)
         
         self.error_pub = self.create_publisher(Twist, '/error', 10)
@@ -71,7 +53,7 @@ class laser_node(Node):
 
     def scaner(self, data):
         ranges = data.ranges
-        if checkForNaN(ranges) or checkForInf(ranges):
+        if checkForNaN(ranges):
             self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(ranges)) + '\n' + 'nan:' + str(checkForNaN(ranges)) + '\n\n\n')
             return
         leftRanges = ranges[0:round(len(ranges)/3)]
@@ -80,17 +62,6 @@ class laser_node(Node):
         angles = np.linspace(-120,120, len(ranges))
         maxGap = self.getMaxGap(ranges)
         gapDistances, gapAngles = self.getGapInfo(ranges,angles, maxGap)
-        try:
-            self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
-        except:
-            self.get_logger().info('No gap'+'\n\n\n')
-
-
-    def scanner(self, data):
-        distances = data.ranges.tolist()
-        angles = range(self.min_angle,self.max_angle)
-        max_gap = self.getMaxGap(distances)
-        gapDistances, gapAngles = self.getGapInfo(distances,angles, max_gap)
         try:
             self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
         except:
