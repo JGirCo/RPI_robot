@@ -46,15 +46,17 @@ class stop_node(Node):
         #self.get_logger().info('rangos: ' + str(rangos) + '\n')
         
         for i in rangos:
-            if(not math.isnan(self.ranges[i]) and not math.isinf(self.ranges[i])):
-                if(self.ranges[i] <= self.distancia_segura and (self.ranges.index(self.ranges[i]) > n_60 or self.ranges.index(self.ranges[i]) < n_120)):
-                    if (self.lado == 0.0):
-                        vel.angular.z = self.velocidad_angular
-                    else:
-                        vel.angular.z = -self.velocidad_angular
-                    vel.linear.x = -1.0
-                    #self.get_logger().info('minima distancia:'+ str(min(self.ranges))+'indice: '+str(self.ranges.index(min(self.ranges)))+'\n')
-                    #self.get_logger().info('Pa lado:'+ str(vel.angular.z)+'\n\n\n')
+            if(math.isnan(self.ranges[i]) or math.isinf(self.ranges[i])):
+                continue
+            if not (self.ranges[i] <= self.distancia_segura and (self.ranges.index(self.ranges[i]) > n_60 or self.ranges.index(self.ranges[i]) < n_120)):
+                continue
+            if (self.lado == 0.0):
+                vel.angular.z = self.velocidad_angular
+            else:
+                vel.angular.z = -self.velocidad_angular
+            vel.linear.x = -1.0
+            #self.get_logger().info('minima distancia:'+ str(min(self.ranges))+'indice: '+str(self.ranges.index(min(self.ranges)))+'\n')
+            #self.get_logger().info('Pa lado:'+ str(vel.angular.z)+'\n\n\n')
         #self.get_logger().info('minima distancia:'+ str(min(self.ranges))+'indice: '+str(self.ranges.index(min(self.ranges)))+'\n')
 
         self.cmd_pub.publish(vel)
