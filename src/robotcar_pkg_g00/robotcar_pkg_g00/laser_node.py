@@ -3,6 +3,17 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
 import math
+import numpy as np
+
+def checkForNaN(data):
+    if math.isnan(sum(data)):
+        return True
+    return False
+
+def checkForInf(data):
+    if math.isinf(sum(data)):
+        return True
+    return False
 
 class laser_node(Node): 
     def __init__(self):
@@ -33,38 +44,58 @@ class laser_node(Node):
         timer_period = 0.1 # in [s]
         self.timer = self.create_timer(timer_period, self.error)
     
+
+    
+
+    def getMaxGap(self, distances):
+        currentGap = []
+        max_gap = []
+        for i, distance in enumerate(distances):
+            if distance < self.min_dist:
+                currentGap = []
+                continue
+            currentGap.append(i)
+            if len(currentGap) <= len(max_gap):
+                continue
+            max_gap = currentGap
+        return max_gap
+
+    def getGapInfo(self, distances, angles,max_gap):
+        gapDistances = [distances[i] for i in max_gap]
+        gapAngles = [angles[i] for i in max_gap]
+        return gapDistances, gapAngles
+
+    def getTargetAngle(self, gapDistances, gapAngles):
+        targetAngle = gapAngles[len(gapDistances)//2]
+        return targetAngle
+
     def scaner(self, data):
         ranges = data.ranges
-        b = ranges[round(3*len(ranges)/4) - 1] # 270, nuevo 0
-        a = ranges[round(5*len(ranges)/6) - 1] # 300, nuevo 30 
-        b_2 = ranges[round(len(ranges)/4) - 1] # 90, nuevo 180
-        a_2 = ranges[round(1*len(ranges)/6) - 1] # 60, nuevo 150
-        #self.get_logger().info('nuevo 0: ' + str(b) + '\n' + 'nuevo 30: ' + str(a) + '\n' + 'nuevo 180: ' + str(b_2) + '\n' + 'nuevo 150: ' + str(a_2) +  '\n\n\n')
-        alfa = math.atan((a*math.cos(math.pi/6)-b)/(a*math.sin(math.pi/6)))
-        alfa_2 = math.atan((a_2*math.cos(math.pi/6)-b_2)/(a_2*math.sin(math.pi/6)))
-        ab = b*math.cos(alfa)
-        ab_2 = b_2*math.cos(alfa_2)
-        self.cd = ab + self.ac*math.sin(alfa)
-        self.cd_2 = ab_2 + self.ac*math.sin(alfa_2)
-        #self.get_logger().info('minima distancia:'+ str(min(ranges))+'indice: '+str(ranges.index(min(ranges)))+'\n')
+        if checkForNaN(ranges) or checkForInf(ranges):
+            self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(ranges)) + '\n' + 'nan:' + str(checkForNaN(ranges)) + '\n\n\n')
+            return
+        leftRanges = ranges[0:round(len(ranges)/3)]
+        rightRanges = ranges[round(2*len(ranges)/3):]
+        curatedRanges = (rightRanges + leftRanges)[::-1]
+        angles = np.linspace(-120,120, len(ranges))
+        maxGap = self.getMaxGap(ranges)
+        gapDistances, gapAngles = self.getGapInfo(ranges,angles, maxGap)
+        try:
+            self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
+        except:
+            self.get_logger().info('No gap'+'\n\n\n')
 
-        if self.inicio == 1:
-            if self.cd <= self.cd_2:
-                self.theta = -alfa 
-                self.y = self.distancia_muro - self.cd
-                self.inicio = 0 
-                self.lado = 0.0
-            else:
-                self.theta = -alfa_2 
-                self.y = self.distancia_muro - self.cd_2
-                self.inicio = 2
-                self.lado = 1.0
-        elif self.inicio == 0:
-            self.theta = -alfa 
-            self.y = self.distancia_muro - self.cd
-        elif self.inicio == 2:
-            self.theta = -alfa_2 
-            self.y = self.distancia_muro - self.cd_2
+
+    def scanner(self, data):
+        distances = data.ranges.tolist()
+        angles = range(self.min_angle,self.max_angle)
+        max_gap = self.getMaxGap(distances)
+        gapDistances, gapAngles = self.getGapInfo(distances,angles, max_gap)
+        try:
+            self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
+        except:
+            self.get_logger().info('No gap'+'\n\n\n')
+
         
         #self.get_logger().info('Longitud del arreglo:' + str(len(ranges)) + '\n' + '270° (nuevo 0°):' + str(ranges[round(3*len(ranges)/4) - 1]) + '\n' + '90° (nuevo 180°):' + str(ranges[round(len(ranges)/4) - 1]) + '\n\n\n')
         #self.get_logger().info('cd:' + str(self.cd) + '\n' + 'cd_2:' + str(self.cd_2) + '\n\n\n')
