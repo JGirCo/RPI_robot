@@ -25,6 +25,7 @@ class laser_node(Node):
 
         timer_period = 0.1 # in [s]
         self.timer = self.create_timer(timer_period, self.error)
+        self.prevError = 0.0
     
 
     
@@ -75,18 +76,15 @@ class laser_node(Node):
     def error(self):
         error = Twist()
         # error.linear.x es el error total actual
-        # error.linear.y es la variable que uso para saber cual muro esta siguiendo
         # error.linear.z es la diferencia de errores, el acutal menos el anterior
 
-        error.linear.y = self.lado
-        
-        error.linear.x = -(self.y + self.l*math.sin(self.theta))
-        error.linear.z = error.linear.x - self.anterior
-        self.anterior = error.linear.x
-        error.angular.x = self.cd
-        error.angular.y = self.cd_2
-        #self.get_logger().info('Envio el error:'+ str(error.position.x)+'\n\n\n')
 
+        self.error_pub.publish(error)
+        error = Twist()
+        error.linear.x = self.targetAngle
+        error.linear.z = self.prevError
+
+        self.prevError = self.targetAngle
         self.error_pub.publish(error)
 
 def main(args=None):
