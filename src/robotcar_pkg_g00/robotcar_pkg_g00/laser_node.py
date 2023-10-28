@@ -20,7 +20,7 @@ class laser_node(Node):
         self.theta = 0.0 # Queremos que sea 0, pues al estar en ese valor se asegura que el carro este paralelo al muro
         self.y = 0.0 # Queremos que sea 0, ya que es el error de la distancia al muro
         self.anterior = 0.0
-        self.distancia_muro = 0.3 # La distancia que buscamos mantener hasta el muro
+        self.distancia_muro = 0.5 # La distancia que buscamos mantener hasta el muro
         self.inicio = 1
         self.lado = 0.0
 
