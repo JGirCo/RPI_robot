@@ -44,8 +44,6 @@ def generate_launch_description():
             executable='stop_node'
             )
 
-
-
     #retorno "generate_launch_description", separar por comas, el objeto de cada nodo
     return LaunchDescription([
         rplidar_node,
