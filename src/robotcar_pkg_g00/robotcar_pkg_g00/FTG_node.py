@@ -20,7 +20,7 @@ class FTG_node(Node):
         super().__init__("FTG_node") 
         self.min_dist = 2
         self.laser_sub = self.create_subscription(LaserScan, '/scan', self.scaner, 1)
-        
+        self.targetAngle = 0 
         self.error_pub = self.create_publisher(Twist, '/FTGerror', 10)
 
         timer_period = 0.1 # in [s]
