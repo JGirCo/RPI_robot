@@ -4,9 +4,9 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 import math
 
-class pidWF_node(Node): 
+class pidFTG_node(Node): 
     def __init__(self):
-        super().__init__("pidWF_node") 
+        super().__init__("pidFTG_node") 
         self.errorActual = 0.0
         self.velocidad_adelante = 1.0
         self.lado = 0.0
@@ -41,7 +41,7 @@ class pidWF_node(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = pidWF_node() # Definicion del objeto "node"
+    node = pidFTG_node() # Definicion del objeto "node"
 
     # ejecucion ciclica 
     rclpy.spin(node)

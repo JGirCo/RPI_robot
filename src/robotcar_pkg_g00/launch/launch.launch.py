@@ -29,6 +29,16 @@ def generate_launch_description():
             executable='pidWF_node'
             )
 
+    pid_ftg = Node(
+            package='robotcar_pkg_g00',
+            executable='pidFTG_node'
+            )
+
+    follow_the_gap = Node(
+            package='robotcar_pkg_g00',
+            executable='FTG_node'
+            )
+
     stop = Node(
             package='robotcar_pkg_g00',
             executable='stop_node'
@@ -42,5 +52,7 @@ def generate_launch_description():
         pwm,
         stop,
         pid_wf,
+        pid_ftg,
+        follow_the_gap,
         laser
     ])
