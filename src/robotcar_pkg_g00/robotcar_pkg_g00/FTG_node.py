@@ -75,8 +75,6 @@ class FTG_node(Node):
         error = Twist()
         # error.linear.x es el error total actual
         # error.linear.z es la diferencia de errores, el acutal menos el anterior
-
-
         self.error_pub.publish(error)
         error = Twist()
         error.linear.x = self.targetAngle

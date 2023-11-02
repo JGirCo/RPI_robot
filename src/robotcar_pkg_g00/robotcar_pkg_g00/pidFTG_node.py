@@ -7,52 +7,36 @@ import math
 class pidWF_node(Node): 
     def __init__(self):
         super().__init__("pidWF_node") 
-        self.error_actual = 0.0
+        self.errorActual = 0.0
         self.velocidad_adelante = 1.0
         self.lado = 0.0
-        self.kp = 1.5
-        self.kd = 3.0
+        self.kp = 0.0015
+        self.kd = 0.0030
         self.der = 0.0
         self.velocidad_angular = 0.5
 
         # subscriptor obj
         # obj (msg_type,topic_name, callback_handler, buffer) 
-        self.error_sub = self.create_subscription(Twist, '/error', self.error, 1)
+        self.error_sub = self.create_subscription(Twist, '/FTGerror', self.error, 1)
 
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_pid', 10)
+        self.cmd_pub = self.create_publisher(Twist, '/cmd_pid_FTG', 10)
 
         self.timer_period = 0.3 # in [s]
         self.timer = self.create_timer(self.timer_period, self.velocidad)
 
+
     def error(self, data):
-        self.error_actual = data.linear.x
-        self.lado = data.linear.y
-        self.der = data.linear.z #lo voy a usar para la derivada del error
-        self.cd = data.angular.x
-        self.cd2 = data.angular.y
+        self.errorActual = data.linear.x
+        self.errorPrev = data.linear.z
     
     def velocidad(self): #el eje de giro z sale del piso
         vel = Twist()
-        vel.linear.x = self.velocidad_adelante
-        if(not math.isnan(self.error_actual) and not math.isinf(self.error_actual)):
-            if(self.lado == 0.0):
-                vel.angular.z = -(self.kp*self.error_actual + self.kd*self.der/self.timer_period)
-                if vel.angular.z < -0.5:
-                    vel.angular.z = -0.5
-            else:
-                vel.angular.z = self.kp*self.error_actual + self.kd*self.der/self.timer_period
-                if vel.angular.z > 0.5:
-                    vel.angular.z = 0.5
-
-        else:
-            vel.linear.x = 0.9
-            if(self.lado == 0.0):
-                vel.angular.z = -0.1
-            else:
-                vel.angular.z = 0.1
-        #self.get_logger().info('Recibo el error:'+ str(self.error_mio)+'\n\n\n')
-        #self.get_logger().info('Vel lineal:'+ str(vel.linear.x)+'\n\n')
-        #self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')
+        # vel.linear.x = -0.5 if self.stop_info else 0.5
+        vel.linear.x = 0.5 
+        if(not math.isnan(self.errorActual)):
+            vel.angular.z = -(self.kp*self.errorActual + self.kd*self.der/self.timer_period)
+        #self.get_logger().info('Recibo el error:'+ str(self.errorActual)+'\n\n\n')
+        self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')
         self.cmd_pub.publish(vel)
 
 def main(args=None):
