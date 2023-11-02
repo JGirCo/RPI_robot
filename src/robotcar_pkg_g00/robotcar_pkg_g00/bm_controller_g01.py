@@ -29,6 +29,7 @@ class BMControllerG01(Node):
     self.twist_parar = self.create_subscription(Twist,'/cmd_vel_joy',self.send_cmd_joy,10)
     self.twist_parar = self.create_subscription(Twist,'/cmd_parar',self.send_cmd_parar,10)
     self.twist_pid = self.create_subscription(Twist,'/cmd_pid',self.send_cmd_pid,10)
+    self.twist_pid_FTG = self.create_subscription(Twist,'/cmd_pid_FTG',self.send_cmd_pid_FTG,10)
 
     self.timer_period = 0.1 # in [s]
     self.timer = self.create_timer(self.timer_period, self.send_cmd)
@@ -47,7 +48,12 @@ class BMControllerG01(Node):
     #self.get_logger().info('pid: {:.3f}, angular: {:.3f}'.format(msg.linear.x,msg.angular.z))
     self.pid_u = msg.linear.x # (-1,1)
     self.pid_r = msg.angular.z # (-0.5,0.5)
-  
+
+  def send_cmd_pid_FTG(self,msg):
+    #self.get_logger().info('pid: {:.3f}, angular: {:.3f}'.format(msg.linear.x,msg.angular.z))
+    self.pid_u = msg.linear.x # (-1,1)
+    self.pid_r = msg.angular.z # (-0.5,0.5)
+
   def send_cmd(self):
     # range(1300, 1700) equiv (5%, 10%) ESC Speed
     # It can be different for each Car
