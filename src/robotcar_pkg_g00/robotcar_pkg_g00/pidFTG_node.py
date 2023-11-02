@@ -10,7 +10,7 @@ class pidFTG_node(Node):
         self.errorActual = 0.0
         self.velocidad_adelante = 1.0
         self.lado = 0.0
-        self.kp = 0.0015
+        self.kp = 0.0035
         self.kd = 0.0030
         self.der = 0.0
         self.velocidad_angular = 0.5
@@ -32,11 +32,11 @@ class pidFTG_node(Node):
     def velocidad(self): #el eje de giro z sale del piso
         vel = Twist()
         # vel.linear.x = -0.5 if self.stop_info else 0.5
-        vel.linear.x = 0.5 
+        vel.linear.x = 1.0
         if(not math.isnan(self.errorActual)):
             vel.angular.z = -(self.kp*self.errorActual + self.kd*self.der/self.timer_period)
-        #self.get_logger().info('Recibo el error:'+ str(self.errorActual)+'\n\n\n')
-        self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')
+        self.get_logger().info('Recibo el error:'+ str(self.errorActual)+'\n\n\n')
+        #self.get_logger().info('Vel angular:'+ str(vel.angular.z)+'\n\n\n')
         self.cmd_pub.publish(vel)
 
 def main(args=None):

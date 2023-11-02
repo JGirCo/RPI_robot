@@ -10,7 +10,7 @@ class pidWF_node(Node):
         self.error_actual = 0.0
         self.velocidad_adelante = 1.0
         self.lado = 0.0
-        self.kp = 2.0
+        self.kp = 2.5
         self.kd = 3.5
         self.der = 0.0
         self.velocidad_angular = 0.5

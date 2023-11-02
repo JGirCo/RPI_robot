@@ -20,7 +20,7 @@ class FTG_node(Node):
         super().__init__("FTG_node") 
         self.min_dist = 2
         self.laser_sub = self.create_subscription(LaserScan, '/scan', self.scaner, 1)
-        self.targetAngle = 0 
+        self.targetAngle = 0.0
         self.error_pub = self.create_publisher(Twist, '/FTGerror', 10)
 
         timer_period = 0.1 # in [s]
@@ -51,27 +51,29 @@ class FTG_node(Node):
         return targetAngle
 
     def scaner(self, data):
-        ranges = data.ranges
-        if checkForNaN(ranges):
-            self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(ranges)) + '\n' + 'nan:' + str(checkForNaN(ranges)) + '\n\n\n')
+        self.ranges = data.ranges
+        if checkForNaN(self.ranges):
+            self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(self.ranges)) + '\n' + 'nan:' + str(checkForNaN(self.ranges)) + '\n\n\n')
             return
-        leftRanges = ranges[0:round(len(ranges)/3)]
-        rightRanges = ranges[round(2*len(ranges)/3):]
+        leftRanges = self.ranges[0:round(len(self.ranges)/3)]
+        rightRanges = self.ranges[round(2*len(self.ranges)/3):]
         curatedRanges = (rightRanges + leftRanges)[::-1]
-        angles = np.linspace(-120,120, len(ranges))
-        maxGap = self.getMaxGap(ranges)
-        gapDistances, gapAngles = self.getGapInfo(ranges,angles, maxGap)
+        angles = np.linspace(-120,120, len(self.ranges))
+        self.maxGap = self.getMaxGap(self.ranges)
+        gapDistances, gapAngles = self.getGapInfo(self.ranges,angles, self.maxGap)
         try:
             self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
         except:
             self.get_logger().info('No gap'+'\n\n\n')
 
         
-        #self.get_logger().info('Longitud del arreglo:' + str(len(ranges)) + '\n' + '270° (nuevo 0°):' + str(ranges[round(3*len(ranges)/4) - 1]) + '\n' + '90° (nuevo 180°):' + str(ranges[round(len(ranges)/4) - 1]) + '\n\n\n')
+        #self.get_logger().info('Longitud del arreglo:' + str(len(self.ranges)) + '\n' + '270° (nuevo 0°):' + str(self.ranges[round(3*len(self.ranges)/4) - 1]) + '\n' + '90° (nuevo 180°):' + str(self.ranges[round(len(self.ranges)/4) - 1]) + '\n\n\n')
         #self.get_logger().info('cd:' + str(self.cd) + '\n' + 'cd_2:' + str(self.cd_2) + '\n\n\n')
 
 
     def error(self):
+        if len(self.maxGap) < len(self.ranges)/2:
+            return
         error = Twist()
         # error.linear.x es el error total actual
         # error.linear.z es la diferencia de errores, el acutal menos el anterior
