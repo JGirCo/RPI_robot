@@ -47,9 +47,10 @@ class BMControllerG01(Node):
     self.p_r  = msg.angular.z # (-0.5,0.5)
   
   def send_cmd_pid(self,msg):
+        pass
     #self.get_logger().info('pid: {:.3f}, angular: {:.3f}'.format(msg.linear.x,msg.angular.z))
-    self.pid_u = msg.linear.x # (-1,1)
-    self.pid_r = msg.angular.z # (-0.5,0.5)
+    # self.pid_u = msg.linear.x # (-1,1)
+    # self.pid_r = msg.angular.z # (-0.5,0.5)
 
   def send_cmd_pid_FTG(self,msg):
     #self.get_logger().info('pid: {:.3f}, angular: {:.3f}'.format(msg.linear.x,msg.angular.z))

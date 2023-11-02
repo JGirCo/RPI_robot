@@ -50,19 +50,24 @@ class FTG_node(Node):
         targetAngle = gapAngles[len(gapDistances)//2]
         return targetAngle
 
-    def scaner(self, data):
-        self.ranges = data.ranges
-        if checkForNaN(self.ranges):
-            self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(self.ranges)) + '\n' + 'nan:' + str(checkForNaN(self.ranges)) + '\n\n\n')
+    def curateRanges(self,ranges):
+        if checkForNaN(ranges):
+            self.get_logger().info('Error, inf o nan detectado.' + '\n inf:' + str(checkForInf(ranges)) + '\n' + 'nan:' + str(checkForNaN(ranges)) + '\n\n\n')
             return
         leftRanges = self.ranges[0:round(len(self.ranges)/3)]
         rightRanges = self.ranges[round(2*len(self.ranges)/3):]
         curatedRanges = (rightRanges + leftRanges)[::-1]
-        angles = np.linspace(-120,120, len(self.ranges))
-        self.maxGap = self.getMaxGap(self.ranges)
-        gapDistances, gapAngles = self.getGapInfo(self.ranges,angles, self.maxGap)
+        return curatedRanges
+
+
+    def scaner(self, data):
+        ranges = data.ranges
+        ranges = self.curatedRanges(ranges) #Se ajustan los rangos de tal forma que sean continuos
+        angles = np.linspace(-120,120, len(ranges)) #Se crea un vector de ángulos
+        maxGap = self.getMaxGap(ranges) #Se encuentra el mayor hueco, en indices
+        gapDistances, gapAngles = self.getGapInfo(ranges,angles, maxGap) #Se extraen los ángulos y rangos del hueco
         try:
-            self.targetAngle = self.getTargetAngle(gapDistances, gapAngles)
+            self.targetAngle = self.getTargetAngle(gapDistances, gapAngles) #Se halla el ángulo objetivo
         except:
             self.get_logger().info('No gap'+'\n\n\n')
 
@@ -79,7 +84,7 @@ class FTG_node(Node):
         # error.linear.z es la diferencia de errores, el acutal menos el anterior
         self.error_pub.publish(error)
         error = Twist()
-        error.linear.x = self.targetAngle
+        error.linear.x = -self.targetAngle #Dado que el angulo de la mitad es 0°, el angulo objetivo es el mismo que el error
         error.linear.z = self.prevError
 
         self.prevError = self.targetAngle
